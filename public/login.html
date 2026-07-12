@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<meta charset="UTF-8">
+
+<title>Login</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body class="bg-dark d-flex justify-content-center align-items-center vh-100">
+
+<div class="card p-4" style="width:350px;">
+
+<h3 class="text-center mb-4">
+
+ARVEXT
+
+</h3>
+
+<input
+id="usuario"
+class="form-control mb-3"
+placeholder="Usuario">
+
+<input
+id="password"
+type="password"
+class="form-control mb-3"
+placeholder="Contraseña">
+
+<button
+class="btn btn-dark"
+onclick="login()">
+
+Entrar
+
+</button>
+
+</div>
+
+<script>
+
+async function login(){
+
+const r=await fetch(
+
+"/api/login",
+
+{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":"application/json"
+
+},
+
+body:JSON.stringify({
+
+usuario:
+
+document.getElementById("usuario").value,
+
+password:
+
+document.getElementById("password").value
+
+})
+
+}
+
+);
+
+const data=await r.json();
+
+if(data.success){
+
+location="/dashboard";
+
+}else{
+
+alert("Usuario o contraseña incorrectos");
+
+}
+
+}
+
+</script>
+
+</body>
+</html>

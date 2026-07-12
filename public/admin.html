@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>ARVEXT Admin</title>
+
+<style>
+
+body{
+    background:#090909;
+    color:#00ff66;
+    font-family:Consolas,monospace;
+    margin:30px;
+}
+
+h1{
+    text-align:center;
+    color:#00ff66;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+th,td{
+    border:1px solid #00ff66;
+    padding:10px;
+    text-align:left;
+}
+
+th{
+    background:#00ff66;
+    color:#000;
+}
+
+tr:nth-child(even){
+    background:#111;
+}
+
+button{
+    margin-bottom:20px;
+    padding:10px 20px;
+    background:#00ff66;
+    color:black;
+    border:none;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+#total{
+    font-size:20px;
+    margin-top:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>ARVEXT VISITOR LOGGER</h1>
+
+<button onclick="location.reload()">
+Actualizar
+</button>
+
+<div id="total"></div>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>ID</th>
+<th>IP</th>
+<th>Fecha</th>
+<th>Navegador</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tabla">
+
+</tbody>
+
+</table>
+
+<script>
+
+async function cargar(){
+
+const res=await fetch("/api/visitas");
+
+const datos=await res.json();
+
+document.getElementById("total").innerHTML=
+"Visitas registradas: <b>"+datos.length+"</b>";
+
+let html="";
+
+datos.forEach(v=>{
+
+html+=`
+<tr>
+
+<td>${v.id}</td>
+<td>${v.ip}</td>
+<td>${v.fecha}</td>
+<td>${v.navegador}</td>
+
+</tr>
+`;
+
+});
+
+document.getElementById("tabla").innerHTML=html;
+
+}
+
+cargar();
+
+setInterval(cargar,3000);
+
+</script>
+
+</body>
+</html>

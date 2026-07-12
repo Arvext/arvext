@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>ARVEXT Analytics</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+    background:#0d1117;
+    color:white;
+}
+
+.card{
+    background:#161b22;
+    border:1px solid #30363d;
+    border-radius:15px;
+}
+
+.table{
+    color:white;
+}
+
+h2{
+    font-weight:bold;
+}
+
+input{
+    background:#21262d!important;
+    color:white!important;
+    border:none!important;
+}
+
+input::placeholder{
+    color:#aaa!important;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container-fluid p-4">
+
+<h2 class="mb-4">
+
+📊 ARVEXT Analytics
+
+</h2>
+
+<button
+class="btn btn-success mb-3"
+onclick="window.location='/api/exportar'">
+
+📥 Exportar CSV
+
+</button>
+
+<button
+class="btn btn-danger mb-3 ms-2"
+onclick="borrarVisitas()">
+
+🗑️ Borrar visitas
+
+</button>
+
+<div class="row g-3">
+
+<div class="col-md-3">
+
+<div class="card p-3">
+
+<h6>Total visitas</h6>
+
+<h2 id="total">0</h2>
+
+</div>
+
+</div>
+
+<div class="col-md-3">
+
+<div class="card p-3">
+
+<h6>Visitantes únicos</h6>
+
+<h2 id="unicos">0</h2>
+
+</div>
+
+</div>
+
+<div class="col-md-3">
+
+<div class="card p-3">
+
+<h6>PC</h6>
+
+<h2 id="pc">0</h2>
+
+</div>
+
+</div>
+
+<div class="col-md-3">
+
+<div class="card p-3">
+
+<h6>Móvil</h6>
+
+<h2 id="movil">0</h2>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="card mt-4 p-4">
+
+<canvas id="grafica"></canvas>
+
+</div>
+
+<div class="card mt-4 p-4">
+
+<input
+id="buscar"
+class="form-control mb-3"
+placeholder="Buscar IP, navegador, sistema...">
+
+<div class="table-responsive">
+
+<table class="table table-dark table-hover">
+
+<thead>
+
+<tr>
+
+<th>ID</th>
+
+<th>IP</th>
+
+<th>Fecha</th>
+
+<th>Hora</th>
+
+<th>Navegador</th>
+
+<th>Sistema</th>
+
+<th>Dispositivo</th>
+
+<th>Resolución</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tabla">
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let visitas=[];
+
+let chart;
+
+async function cargar(){
+
+const r=await fetch("/api/visitas");
+
+visitas=await r.json();
+
+dibujar(visitas);
+
+}
+
+function dibujar(lista){
+
+let html="";
+
+let pc=0;
+
+let movil=0;
+
+let ips=[];
+
+let dias={};
+
+lista.forEach(v=>{
+
+html+=`
+
+<tr>
+
+<td>${v.id}</td>
+
+<td>${v.ip}</td>
+
+<td>${v.fecha}</td>
+
+<td>${v.hora}</td>
+
+<td>${v.navegador}</td>
+
+<td>${v.sistema}</td>
+
+<td>${v.dispositivo}</td>
+
+<td>${v.pantalla}</td>
+
+</tr>
+
+`;
+
+ips.push(v.ip);
+
+if(v.dispositivo=="PC"){
+
+pc++;
+
+}else{
+
+movil++;
+
+}
+
+dias[v.fecha]=(dias[v.fecha]||0)+1;
+
+});
+
+document.getElementById("tabla").innerHTML=html;
+
+document.getElementById("total").innerHTML=lista.length;
+
+document.getElementById("pc").innerHTML=pc;
+
+document.getElementById("movil").innerHTML=movil;
+
+document.getElementById("unicos").innerHTML=[...new Set(ips)].length;
+
+if(chart){
+
+chart.destroy();
+
+}
+
+chart=new Chart(
+
+document.getElementById("grafica"),
+
+{
+
+type:"line",
+
+data:{
+
+labels:Object.keys(dias),
+
+datasets:[{
+
+label:"Visitas",
+
+data:Object.values(dias),
+
+fill:true
+
+}]
+
+}
+
+}
+
+);
+
+}
+
+document.getElementById("buscar").addEventListener("keyup",e=>{
+
+const t=e.target.value.toLowerCase();
+
+dibujar(
+
+visitas.filter(v=>
+
+JSON.stringify(v).toLowerCase().includes(t)
+
+)
+
+);
+
+});
+
+cargar();
+
+setInterval(cargar,5000);
+
+async function borrarVisitas() {
+
+    if (!confirm("¿Seguro que quieres borrar todas las visitas?")) {
+        return;
+    }
+
+    const r = await fetch("/api/borrar", {
+        method: "DELETE"
+    });
+
+    const data = await r.json();
+
+    if (data.success) {
+
+        alert("Visitas eliminadas.");
+
+        cargar();
+
+    }
+
+}
+
+</script>
+
+</body>
+
+</html>
